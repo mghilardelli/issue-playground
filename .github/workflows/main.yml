@@ -49,6 +49,8 @@ jobs:
           CURRENT_BODY=$(echo "$ISSUE_BODY" | jq -r '.body')
           NEW_BODY="${CURRENT_BODY}\n- [x] ${CHECKBOX}"
 
+          echo $NEW_BODY
+
           # Update the issue with the new body
           curl -X PATCH \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
