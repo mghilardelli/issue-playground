@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check if checkbox was edited
-        id: check_edit
+        id: checkbox_checked
         run: |
           echo "Issue Body: ${{ github.event.issue.body }}"
           echo "User: ${{ github.event.issue.user.login }}"
