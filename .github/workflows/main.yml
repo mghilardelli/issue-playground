@@ -26,18 +26,14 @@ jobs:
           PREVIOUS_CHECKED=$(echo "$PREVIOUS_BODY" | grep -E '\- \[x\]')
           echo "Previous: $PREVIOUS_CHECKED"
 
-          # Check if there are new checked checkboxes
-          # NEW_CHECKED_LINES=$(echo "$CURRENT_CHECKED" | grep -Fxv -f <(echo "$PREVIOUS_CHECKED"))
-          # echo "New: $NEW_CHECKED_LINES"
-
-          for item in "${CURRENT_CHECKED[@]}"; do
-            if [[ $item =~ \[x\] ]]; then
-              item_name="${item#- }"  # Remove the leading "- "
-              if [[ ! " ${PREVIOUS_CHECKED[*]} " =~ " ${item_name} " ]]; then
+          # Check for newly checked items
+          echo "Newly checked boxes:"
+          while IFS= read -r item; do
+            item_name="${item#- }"  # Remove the leading "- "
+              if [[ ! "$PREVIOUS_CHECKED" =~ $item_name ]]; then
                 echo "$item"
               fi
-            fi
-          done
+          done <<< "$CURRENT_CHECKED"
           
           # Check if any checkbox is checked
            #if [ -n "$NEW_CHECKED_LINES" ]; then
