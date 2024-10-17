@@ -30,7 +30,8 @@ jobs:
           echo "Newly checked boxes:"
           while IFS= read -r item; do
             item_name="${item#- }"  # Remove the leading "- "
-              if [[ ! "$PREVIOUS_CHECKED" =~ $item_name ]]; then
+              # Check if the item is checked now and not checked previously
+              if [[ "$item" =~ \[x\] ]] && [[ ! "$PREVIOUS_BODY" =~ "$item_name" ]]; then
                 echo "$item"
               fi
           done <<< "$CURRENT_CHECKED"
