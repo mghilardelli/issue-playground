@@ -17,7 +17,9 @@ jobs:
           NEW_BODY="${{ github.event.issue.body }}"
           
           if [[ "$OLD_BODY" != "$NEW_BODY" ]]; then
+            echo "old != new"
             if [[ "$OLD_BODY" =~ "- \[ \] BA" && "$NEW_BODY" =~ "- \[x\] BA" ]]; then
+              echo "BA was checked"
               CHECKBOX_CHECKED=true
               CHECKBOX_NAME="BA"
             elif [[ "$OLD_BODY" =~ "- \[ \] UX" && "$NEW_BODY" =~ "- \[x\] UX" ]]; then
