@@ -30,10 +30,10 @@ jobs:
           # NEW_CHECKED_LINES=$(echo "$CURRENT_CHECKED" | grep -Fxv -f <(echo "$PREVIOUS_CHECKED"))
           # echo "New: $NEW_CHECKED_LINES"
 
-          for item in "${current[@]}"; do
+          for item in "${CURRENT_CHECKED[@]}"; do
             if [[ $item =~ \[x\] ]]; then
               item_name="${item#- }"  # Remove the leading "- "
-              if [[ ! " ${previous_checked[*]} " =~ " ${item_name} " ]]; then
+              if [[ ! " ${PREVIOUS_CHECKED[*]} " =~ " ${item_name} " ]]; then
                 echo "$item"
               fi
             fi
