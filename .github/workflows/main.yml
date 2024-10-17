@@ -33,24 +33,25 @@ jobs:
           
           # Build the new body line by line
           while IFS= read -r line; do
+              printf -v trimmed_line "%s" "$line"
               # Check if the line is a checkbox
-              if [[ "$line" =~ \[x\] ]]; then
-                  item_name="${line#- }"  # Remove the leading "- "
+              if [[ "$trimmed_line" =~ \[x\] ]]; then
+                  item_name="${trimmed_line#- }"  # Remove the leading "- "
                   
                   # Check if this item was previously unchecked
                   if ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
                       # Item was newly checked
-                      NEW_BODY+="$line (@$USERNAME)"
-                      echo "Iteam added $line (@$USERNAME)"
+                      NEW_BODY+="$trimmed_line (@$USERNAME)"
+                      echo "Item added $trimmed_line (@$USERNAME)"
                   else
                       # Item was already checked
-                      NEW_BODY+="$line"
-                      echo "Item was already checked $line"
+                      NEW_BODY+="$trimmed_line"
+                      echo "Item was already checked $trimmed_line"
                   fi
               else
                   # Non-checkbox line, add as is
-                  NEW_BODY+="$line"
-                  echo "Item non-checkbox $line"
+                  NEW_BODY+="$trimmed_line"
+                  echo "Item non-checkbox $trimmed_line"
               fi
               NEW_BODY+=$'\n'
           done <<< "$(echo "${{ github.event.issue.body }}")"
