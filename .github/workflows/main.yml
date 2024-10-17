@@ -4,6 +4,9 @@ on:
   issues:
     types: [ edited ]
 
+permissions:
+  issues: write
+
 jobs:
   update-checkbox:
     runs-on: ubuntu-latest
