@@ -58,5 +58,5 @@ jobs:
           if [[ "$NEW_BODY" != "${{ github.event.issue.body }}" ]]; then
               echo "Updating the issue body..."
               echo "Body: $NEW_BODY"
-              echo -e "$NEW_BODY" | gh issue edit ${{ github.event.issue.number }} --body -
+              gh issue edit ${{ github.event.issue.number }} --body $NEW_BODY
           fi
