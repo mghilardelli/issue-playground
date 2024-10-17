@@ -2,7 +2,7 @@ name: Update Issue Checkbox
 
 on:
   issues:
-    types: [edited]
+    types: [ edited ]
 
 jobs:
   update-checkbox:
@@ -12,18 +12,28 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const checkboxes = ["BA", "UX", "DEV"];
             console.log(context.payload.issue.body)
             const issueBody= context.payload.issue.body
             const oldIssueBody = context.payload.changes.body.from
             if(issueBody.includes("- [x] BA") && oldIssueBody.includes("- [ ] BA")){
               console.log("BA is checked")
+              const username = context.actor;
+              const updatedBody = issueBody.replace(`- [x] BA`, `- [x] BA (@${username})`);
+              github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: updatedBody
+              });
             }
+
       - name: Check which checkbox was checked
         if: false
         id: check_checkbox
         run: |
           CHECKBOXES=("BA" "UX")
-                    
+          
           CHECKBOX_CHECKED=false
           CHECKBOX_NAME=""
           OLD_BODY="${{ github.event.changes.body.from }}"
