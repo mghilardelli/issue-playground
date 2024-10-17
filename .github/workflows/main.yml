@@ -8,7 +8,15 @@ jobs:
   update-checkbox:
     runs-on: ubuntu-latest
     steps:
+      - name: new check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log(context.payload.issue.body)
+            const issueBody= context.payload.issue.body
+            
       - name: Check which checkbox was checked
+        if: false
         id: check_checkbox
         run: |
           CHECKBOXES=("BA" "UX")
