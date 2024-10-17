@@ -19,43 +19,28 @@ jobs:
           # Extract previous issue body from the webhook event
           PREVIOUS_BODY="${{ github.event.changes.body.from }}"
           echo "Previous Body: $PREVIOUS_BODY"
-
+          
           # Extract currently checked checkboxes
           CURRENT_CHECKED=$(echo "${{ github.event.issue.body }}" | grep -E '\- \[x\]')
-          echo "Current: $CURRENT_CHECKED"
-          PREVIOUS_CHECKED=$(echo "$PREVIOUS_BODY" | grep -E '\- \[x\]')
-          echo "Previous: $PREVIOUS_CHECKED"
+          
+          USERNAME="${{ github.event.issue.user.login }}"
+          NEW_CHECKED_ITEMS=""
+          UPDATED_BODY="${{ github.event.issue.body }}"
 
-          # Check for newly checked items
-          echo "Newly checked boxes:"
           while IFS= read -r item; do
-            item_name="${item#- }"  # Remove the leading "- "
-              # Check if the item is checked now and not checked previously
-              if [[ "$item" =~ \[x\] ]] && [[ ! "$PREVIOUS_BODY" =~ "$item_name" ]]; then
-                echo "$item"
+              item_name="${item#- }"  # Remove the leading "- "
+              
+              # Check if this item was previously unchecked
+              if [[ "$item" =~ \[x\] ]] && ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
+                  NEW_CHECKED_ITEMS+="$item (Checked by: $USERNAME)\n"
+                  # Update the original body to reflect the newly checked item
+                  UPDATED_BODY="${UPDATED_BODY//$item/- [x] $item_name ($USERNAME)}"
               fi
           done <<< "$CURRENT_CHECKED"
-          
-          # Check if any checkbox is checked
-           #if [ -n "$NEW_CHECKED_LINES" ]; then
-           # echo "Newly checked checkboxes found:"
-           # echo "$NEW_CHECKED_LINES"
-           # echo "checkbox_checked=true" >> $GITHUB_OUTPUT
-           # echo "new_checked_lines=$NEW_CHECKED_LINES" >> $GITHUB_OUTPUT
-          # else
-           # echo "No checkbox checked."
-           # echo "checkbox_checked=false" >> $GITHUB_OUTPUT
-          # fi
-      
-      - name: Comment on Issue
-        if: steps.check_checkbox.outputs.checkbox_checked == 'true'
-        run: |
-          USERNAME="${{ github.event.issue.user.login }}"
-          NEW_CHECKED_LINES="${{ steps.check_checkbox.outputs.new_checked_lines }}"
-          COMMENT="Checkboxes newly checked by @$USERNAME:\n$NEW_CHECKED_LINES"
 
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
-            -d "{\"body\": \"$COMMENT\"}"
+          # If there are new checked items, update the issue body
+          if [[ -n "$NEW_CHECKED_ITEMS" ]]; then
+              echo "Updating the issue body..."
+              echo "Body: $UPDATED_BODY"
+              echo "$UPDATED_BODY" | gh issue edit ${{ github.event.issue.number }} --body-file -
+          fi
