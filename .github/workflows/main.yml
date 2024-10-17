@@ -33,6 +33,11 @@ jobs:
                 console.log(`${checkbox} is unchecked`)
                 const regex = new RegExp(`- \\[ \\] ${checkbox} \\(@[^)]+\\)`, 'g');
                 const updatedBody = issueBody.replace(regex, `- [ ] ${checkbox}`);
-                console.log(updatedBody)
+                 github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: updatedBody
+                });
               }
             }
