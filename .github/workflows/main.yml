@@ -31,6 +31,7 @@ jobs:
                 });
               } else if(issueBody.includes(`- [ ] ${checkbox}`) && oldIssueBody.includes(`- [x] ${checkbox}`)){
                 console.log(`${checkbox} is unchecked`)
+                const regex = new RegExp(`- \\[ \\] ${checkbox} \\(@[^)]+\\)`, 'g');
                 const updatedBody = issueBody.replace(regex, `- [ ] ${checkbox}`);
                 console.log(updatedBody)
               }
