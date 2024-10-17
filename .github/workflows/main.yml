@@ -1,4 +1,4 @@
-oname: Approval Tracking
+name: Approval Tracking
 
 on:
   issues:
