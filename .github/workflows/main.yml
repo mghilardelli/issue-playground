@@ -16,19 +16,21 @@ jobs:
         with:
           script: |
             const checkboxes = ["BA", "UX", "DEV"];
-            console.log(context.payload.issue.body)
             const issueBody= context.payload.issue.body
             const oldIssueBody = context.payload.changes.body.from
-            if(issueBody.includes("- [x] BA") && oldIssueBody.includes("- [ ] BA")){
-              console.log("BA is checked")
-              const username = context.actor;
-              const updatedBody = issueBody.replace(`- [x] BA`, `- [x] BA (@${username})`);
-              github.rest.issues.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: updatedBody
-              });
+            const username = context.actor;
+            for(const checkbox of checkboxes){
+              if(issueBody.includes(`- [x] ${checkbox}`) && !oldIssueBody.includes(`- [x] ${checkbox}`)){
+                console.log(`${checkbox} is checked`)
+                
+                const updatedBody = issueBody.replace(`- [x] ${checkbox}`, `- [x] ${checkbox} (@${username})`);
+                github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: updatedBody
+                });
+              }
             }
 
       - name: Check which checkbox was checked
