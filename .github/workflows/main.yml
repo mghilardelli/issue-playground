@@ -22,10 +22,13 @@ jobs:
 
           # Extract currently checked checkboxes
           CURRENT_CHECKED=$(echo "${{ github.event.issue.body }}" | grep -E '\- \[x\]')
+          echo "Current: $CURRENT_CHECKED"
           PREVIOUS_CHECKED=$(echo "$PREVIOUS_BODY" | grep -E '\- \[x\]')
+          echo "Previous: $PREVIOUS_CHECKED"
 
           # Check if there are new checked checkboxes
           NEW_CHECKED_LINES=$(echo "$CURRENT_CHECKED" | grep -Fxv -f <(echo "$PREVIOUS_CHECKED"))
+          echo "New: $NEW_CHECKED_LINES"
 
           # Check if any checkbox is checked
            if [ -n "$NEW_CHECKED_LINES" ]; then
