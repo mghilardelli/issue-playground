@@ -18,14 +18,14 @@ jobs:
           
           if [[ "$OLD_BODY" != "$NEW_BODY" ]]; then
             echo "old != new"
-            if [[ "$OLD_BODY" =~ "- \[ \] BA" && "$NEW_BODY" =~ "- \[x\] BA" ]]; then
+            if [[ "$OLD_BODY" =~ "- \\[ \\] BA" && "$NEW_BODY" =~ "- \\[x\\] BA" ]]; then
               echo "BA was checked"
               CHECKBOX_CHECKED=true
               CHECKBOX_NAME="BA"
-            elif [[ "$OLD_BODY" =~ "- \[ \] UX" && "$NEW_BODY" =~ "- \[x\] UX" ]]; then
+            elif [[ "$OLD_BODY" =~ "- \\[ \\] UX" && "$NEW_BODY" =~ "- \\[x\\] UX" ]]; then
               CHECKBOX_CHECKED=true
               CHECKBOX_NAME="UX"
-            elif [[ "$OLD_BODY" =~ "- \[ \] DEV" && "$NEW_BODY" =~ "- \[x\] DEV" ]]; then
+            elif [[ "$OLD_BODY" =~ "- \\[ \\] DEV" && "$NEW_BODY" =~ "- \\[x\\] DEV" ]]; then
               CHECKBOX_CHECKED=true
               CHECKBOX_NAME="DEV"
             fi
