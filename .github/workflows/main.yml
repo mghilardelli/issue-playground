@@ -31,20 +31,21 @@ jobs:
           NEW_CHECKED_ITEMS=""
           UPDATED_BODY="${{ github.event.issue.body }}"
 
+          # Loop through the current checked items
           while IFS= read -r item; do
-              item_name="${item#- }"  # Remove the leading "- "
-              
-              # Check if this item was previously unchecked
-              if [[ "$item" =~ \[x\] ]] && ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
-                  # Update the original body to reflect the newly checked item
-                  echo "Debug: $item"
-                  UPDATED_BODY="${UPDATED_BODY//$item/- [x] $item_name (Checked by: $USERNAME)}"
-              fi
+            item_name="${item#- }"  # Remove the leading "- "
+
+            # Check if this item is newly checked
+            if [[ "$item" =~ \[x\] ]] && ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
+              echo "Debug: $item"
+              # Replace the item in UPDATED_BODY with the checked status and username
+              UPDATED_BODY="${UPDATED_BODY/\$item/- [x] $item_name (Checked by: $USERNAME)}"
+            fi
           done <<< "$CURRENT_CHECKED"
 
           # If there are changes, update the issue body
           if [[ "$UPDATED_BODY" != "${{ github.event.issue.body }}" ]]; then
-              echo "Updating the issue body..."
-              echo "Body: $UPDATED_BODY"
-              gh issue edit ${{ github.event.issue.number }} --body "$UPDATED_BODY"
+            echo "Updating the issue body..."
+            echo "Body: $UPDATED_BODY"
+            echo "$UPDATED_BODY" | gh issue edit ${{ github.event.issue.number }} --body -
           fi
