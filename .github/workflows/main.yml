@@ -11,10 +11,19 @@ jobs:
       - name: Check which checkbox was checked
         id: check_checkbox
         run: |
+          CHECKBOXES=("BA" "UX")
+                    
           CHECKBOX_CHECKED=false
           CHECKBOX_NAME=""
           OLD_BODY="${{ github.event.changes.body.from }}"
           NEW_BODY="${{ github.event.issue.body }}"
+
+          for CHECKBOX_TEXT in "${CHECKBOXES[@]}"; do
+            if echo "$NEW_BODY" | grep -q "\- [x] $CHECKBOX_TEXT"; then
+              echo "Checkbox '$CHECKBOX_TEXT' is already checked."
+              continue
+            fi
+          done
           
           if [[ "$OLD_BODY" != "$NEW_BODY" ]]; then
             echo "old != new"
