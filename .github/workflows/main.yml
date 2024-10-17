@@ -40,16 +40,16 @@ jobs:
                   # Check if this item was previously unchecked
                   if ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
                       # Item was newly checked
-                      NEW_BODY+=echo -e "$line (@$USERNAME)\n"
+                      NEW_BODY+="$line (@$USERNAME)\n"
                       echo "Iteam added $line (@$USERNAME)"
                   else
                       # Item was already checked
-                      NEW_BODY+=echo -e "$line\n"
+                      NEW_BODY+="$line\n"
                       echo "Item was already checked $line"
                   fi
               else
                   # Non-checkbox line, add as is
-                  NEW_BODY+=echo -e "$line\n"
+                  NEW_BODY+="$line\n"
                   echo "Item non-checkbox $line"
               fi
           done <<< "$(echo "${{ github.event.issue.body }}")"
