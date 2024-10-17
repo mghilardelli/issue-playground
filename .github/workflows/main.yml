@@ -11,7 +11,7 @@ jobs:
   update-checkbox:
     runs-on: ubuntu-latest
     steps:
-      - name: new check
+      - name: Checkboxes
         uses: actions/github-script@v6
         with:
           script: |
@@ -20,9 +20,8 @@ jobs:
             const oldIssueBody = context.payload.changes.body.from
             const username = context.actor;
             for(const checkbox of checkboxes){
-              if(issueBody.includes(`- [x] ${checkbox}`) && !oldIssueBody.includes(`- [x] ${checkbox}`)){
+              if(issueBody.includes(`- [x] ${checkbox}`) && oldIssueBody.includes(`- [ ] ${checkbox}`)){
                 console.log(`${checkbox} is checked`)
-                
                 const updatedBody = issueBody.replace(`- [x] ${checkbox}`, `- [x] ${checkbox} (@${username})`);
                 github.rest.issues.update({
                   owner: context.repo.owner,
@@ -30,54 +29,9 @@ jobs:
                   issue_number: context.issue.number,
                   body: updatedBody
                 });
+              } else if(issueBody.includes(`- [ ] ${checkbox}`) && oldIssueBody.includes(`- [x] ${checkbox}`)){
+                console.log(`${checkbox} is unchecked`)
+                const updatedBody = issueBody.replace(regex, `- [ ] ${checkbox}`);
+                console.log(updatedBody)
               }
             }
-
-      - name: Check which checkbox was checked
-        if: false
-        id: check_checkbox
-        run: |
-          CHECKBOXES=("BA" "UX")
-          
-          CHECKBOX_CHECKED=false
-          CHECKBOX_NAME=""
-          OLD_BODY="${{ github.event.changes.body.from }}"
-          NEW_BODY="${{ github.event.issue.body }}"
-
-          for CHECKBOX_TEXT in "${CHECKBOXES[@]}"; do
-            if echo "$NEW_BODY" | grep -q "\- [x] $CHECKBOX_TEXT"; then
-              echo "Checkbox '$CHECKBOX_TEXT' is already checked."
-              continue
-            fi
-          done
-          
-          if [[ "$OLD_BODY" != "$NEW_BODY" ]]; then
-            echo "old != new"
-            if [[ "$OLD_BODY" =~ "- \\[ \\] BA" ]]; then
-              echo "BA was unchecked"
-            fi
-            if [[ "$NEW_BODY" =~ "- \\[x\\] BA" ]]; then
-              echo "BA is checked"
-              CHECKBOX_CHECKED=true
-              CHECKBOX_NAME="BA"
-            fi
-          fi
-          
-          echo "CHECKBOX_CHECKED=$CHECKBOX_CHECKED" >> $GITHUB_ENV
-          echo "CHECKBOX_NAME=$CHECKBOX_NAME" >> $GITHUB_ENV
-
-      - name: Update issue with username
-        if: env.CHECKBOX_CHECKED == 'true'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const issueBody = context.payload.issue.body;
-            const username = context.actor;
-            const checkboxName = process.env.CHECKBOX_NAME;
-            const updatedBody = issueBody.replace(`- [x] ${checkboxName}`, `- [x] ${checkboxName} (@${username})`);
-            github.rest.issues.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: updatedBody
-            });
