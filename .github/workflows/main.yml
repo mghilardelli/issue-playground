@@ -27,19 +27,28 @@ jobs:
           echo "Previous: $PREVIOUS_CHECKED"
 
           # Check if there are new checked checkboxes
-          NEW_CHECKED_LINES=$(echo "$CURRENT_CHECKED" | grep -Fxv -f <(echo "$PREVIOUS_CHECKED"))
-          echo "New: $NEW_CHECKED_LINES"
+          # NEW_CHECKED_LINES=$(echo "$CURRENT_CHECKED" | grep -Fxv -f <(echo "$PREVIOUS_CHECKED"))
+          # echo "New: $NEW_CHECKED_LINES"
 
+          for item in "${current[@]}"; do
+            if [[ $item =~ \[x\] ]]; then
+              item_name="${item#- }"  # Remove the leading "- "
+              if [[ ! " ${previous_checked[*]} " =~ " ${item_name} " ]]; then
+                echo "$item"
+              fi
+            fi
+          done
+          
           # Check if any checkbox is checked
-           if [ -n "$NEW_CHECKED_LINES" ]; then
-            echo "Newly checked checkboxes found:"
-            echo "$NEW_CHECKED_LINES"
-            echo "checkbox_checked=true" >> $GITHUB_OUTPUT
-            echo "new_checked_lines=$NEW_CHECKED_LINES" >> $GITHUB_OUTPUT
-          else
-            echo "No checkbox checked."
-            echo "checkbox_checked=false" >> $GITHUB_OUTPUT
-          fi
+           #if [ -n "$NEW_CHECKED_LINES" ]; then
+           # echo "Newly checked checkboxes found:"
+           # echo "$NEW_CHECKED_LINES"
+           # echo "checkbox_checked=true" >> $GITHUB_OUTPUT
+           # echo "new_checked_lines=$NEW_CHECKED_LINES" >> $GITHUB_OUTPUT
+          # else
+           # echo "No checkbox checked."
+           # echo "checkbox_checked=false" >> $GITHUB_OUTPUT
+          # fi
       
       - name: Comment on Issue
         if: steps.check_checkbox.outputs.checkbox_checked == 'true'
