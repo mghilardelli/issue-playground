@@ -26,11 +26,13 @@ jobs:
           fi
       
       - name: Comment on Issue
-        if: steps.check_checkbox.outputs.checkbox_checked == 'true'
+        # if: steps.check_checkbox.outputs.checkbox_checked == 'true'
         run: |
           USERNAME="${{ github.event.issue.user.login }}"
           COMMENT="Checkbox checked by @$USERNAME!"
-
+          
+          echo "output: ${{steps.check_checkbox.outputs.checkbox_checked}}"
+          
           curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
