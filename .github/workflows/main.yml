@@ -19,10 +19,10 @@ jobs:
           # Check if any checkbox is checked
           if echo "${{ github.event.issue.body }}" | grep -q '\- \[x\]'; then
             echo "Checkbox checked."
-            echo "::set-output name=checkbox_checked::true"
+            echo "{checkbox_checked}={true}" >> $GITHUB_OUTPUT
           else
             echo "No checkbox checked."
-            echo "::set-output name=checkbox_checked::false"
+            echo "{checkbox_checked}={false}" >> $GITHUB_OUTPUT
           fi
       
       - name: Comment on Issue
