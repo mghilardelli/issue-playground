@@ -1,64 +1,49 @@
-name: Approval Tracking
+name: Update Issue Checkbox
 
 on:
   issues:
     types: [edited]
 
-permissions:
-  issues: write
 jobs:
-  check_checkbox:
+  update-checkbox:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2 
-
-      - name: Check if checkbox was edited
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Check which checkbox was checked
+        id: check_checkbox
         run: |
-          echo "Issue Body: ${{ github.event.issue.body }}"
-          echo "User: ${{ github.event.issue.user.login }}"
+          CHECKBOX_CHECKED=false
+          CHECKBOX_NAME=""
+          OLD_BODY="${{ github.event.changes.body.from }}"
+          NEW_BODY="${{ github.event.issue.body }}"
           
-          # Extract previous issue body from the webhook event
-          PREVIOUS_BODY="${{ github.event.changes.body.from }}"
-          echo "Previous Body: $PREVIOUS_BODY"
-          
-          # Extract currently checked checkboxes
-          CURRENT_CHECKED=$(echo "${{ github.event.issue.body }}" | grep -E '\- \[x\]')
-          echo "Current: $CURRENT_CHECKED"
-          
-          USERNAME="${{ github.event.issue.user.login }}"
-          NEW_BODY=""
-          
-          # Build the new body line by line
-          while IFS= read -r line; do
-              printf -v trimmed_line "%s" "$line"
-              # Check if the line is a checkbox
-              if [[ "$trimmed_line" =~ \[x\] ]]; then
-                  item_name="${trimmed_line#- }"  # Remove the leading "- "
-                  
-                  # Check if this item was previously unchecked
-                  if ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
-                      # Item was newly checked
-                      NEW_BODY+="$trimmed_line (@$USERNAME)"
-                      echo "Item added $trimmed_line (@$USERNAME)"
-                  else
-                      # Item was already checked
-                      NEW_BODY+="$trimmed_line"
-                      echo "Item was already checked $trimmed_line"
-                  fi
-              else
-                  # Non-checkbox line, add as is
-                  NEW_BODY+="$trimmed_line"
-                  echo "Item non-checkbox $trimmed_line"
-              fi
-              NEW_BODY+=$'\n'
-          done <<< "$(echo "${{ github.event.issue.body }}")"
-
-          # If there are changes, update the issue body
-          if [[ "$NEW_BODY" != "${{ github.event.issue.body }}" ]]; then
-              echo "Updating the issue body..."
-              echo "Body: $NEW_BODY"
-              gh issue edit ${{ github.event.issue.number }} --body "$NEW_BODY"
+          if [[ "$OLD_BODY" != "$NEW_BODY" ]]; then
+            if [[ "$OLD_BODY" =~ "- \[ \] BA" && "$NEW_BODY" =~ "- \[x\] BA" ]]; then
+              CHECKBOX_CHECKED=true
+              CHECKBOX_NAME="BA"
+            elif [[ "$OLD_BODY" =~ "- \[ \] UX" && "$NEW_BODY" =~ "- \[x\] UX" ]]; then
+              CHECKBOX_CHECKED=true
+              CHECKBOX_NAME="UX"
+            elif [[ "$OLD_BODY" =~ "- \[ \] DEV" && "$NEW_BODY" =~ "- \[x\] DEV" ]]; then
+              CHECKBOX_CHECKED=true
+              CHECKBOX_NAME="DEV"
+            fi
           fi
+          
+          echo "CHECKBOX_CHECKED=$CHECKBOX_CHECKED" >> $GITHUB_ENV
+          echo "CHECKBOX_NAME=$CHECKBOX_NAME" >> $GITHUB_ENV
+
+      - name: Update issue with username
+        if: env.CHECKBOX_CHECKED == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const username = context.actor;
+            const checkboxName = process.env.CHECKBOX_NAME;
+            const updatedBody = issueBody.replace(`- [x] ${checkboxName}`, `- [x] ${checkboxName} (@${username})`);
+            github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: updatedBody
+            });
