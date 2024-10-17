@@ -15,7 +15,7 @@ jobs:
             console.log(context.payload.issue.body)
             const issueBody= context.payload.issue.body
             const oldIssueBody = context.payload.changes.body.from
-            if(issueBody.includes("- [x] BA" && oldIssueBody.includes("- [ ] BA")){
+            if(issueBody.includes("- [x] BA") && oldIssueBody.includes("- [ ] BA")){
               console.log("BA is checked")
             }
       - name: Check which checkbox was checked
