@@ -26,6 +26,7 @@ jobs:
           
           # Extract currently checked checkboxes
           CURRENT_CHECKED=$(echo "${{ github.event.issue.body }}" | grep -E '\- \[x\]')
+          echo "Current: $CURRENT_CHECKED"
           
           USERNAME="${{ github.event.issue.user.login }}"
           NEW_BODY=""
@@ -40,13 +41,16 @@ jobs:
                   if ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
                       # Item was newly checked
                       NEW_BODY+="$line (Checked by: $USERNAME)\n"
+                      echo "Iteam added $line (Checked by: $USERNAME)"
                   else
                       # Item was already checked
                       NEW_BODY+="$line\n"
+                      echo "Item was already checked $line"
                   fi
               else
                   # Non-checkbox line, add as is
                   NEW_BODY+="$line\n"
+                  echo "Item non-checkbox $line"
               fi
           done <<< "$(echo "${{ github.event.issue.body }}")"
 
