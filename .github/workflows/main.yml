@@ -18,10 +18,10 @@ jobs:
           
           if [[ "$OLD_BODY" != "$NEW_BODY" ]]; then
             echo "old != new"
-            if [[ "$OLD_BODY" =~ "- \[ \] BA" ]]; then
+            if [[ "$OLD_BODY" =~ "- \\[ \\] BA" ]]; then
               echo "BA was unchecked"
             fi
-            if [[ "$NEW_BODY" =~ "- \[x\] BA" ]]; then
+            if [[ "$NEW_BODY" =~ "- \\[x\\] BA" ]]; then
               echo "BA is checked"
               CHECKBOX_CHECKED=true
               CHECKBOX_NAME="BA"
