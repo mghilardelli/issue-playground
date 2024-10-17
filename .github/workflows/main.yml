@@ -1,59 +1,38 @@
 name: Approval Tracking
 
 on:
-  issue_comment:
-    types: [created]
+  issues:
+    types: [edited]
 
 permissions:
-  issues: write  # Grant permission to write to issues
-
+  issues: write
 jobs:
-  approval:
+  check_checkbox:
     runs-on: ubuntu-latest
     steps:
-      - name: Check for approval comment
-        if: contains(github.event.comment.body, '/approve')
+      - name: Check if checkbox was edited
+        id: check_edit
         run: |
-          ISSUE_NUMBER=${{ github.event.issue.number }}
-          APPROVER=${{ github.actor }}
-
-          # Determine the appropriate label based on the approver
-          if [[ "$APPROVER" == "mghilardelli" ]]; then
-            LABEL="Product Owner Approved"
-            CHECKBOX="Product Owner: @${APPROVER} - ✅"
-          elif [[ "$APPROVER" == "developer-username" ]]; then
-            LABEL="Developer Approved"
-            CHECKBOX="Developer: @${APPROVER} - ✅"
-          elif [[ "$APPROVER" == "qa-username" ]]; then
-            LABEL="QA Approved"
-            CHECKBOX="QA: @${APPROVER} - ✅"
+          echo "Issue Body: ${{ github.event.issue.body }}"
+          echo "User: ${{ github.event.issue.user.login }}"
+          
+          # Check if any checkbox is checked
+          if echo "${{ github.event.issue.body }}" | grep -q '\- \[x\]'; then
+            echo "Checkbox checked."
+            echo "::set-output name=checkbox_checked::true"
           else
-            echo "User not authorized to approve."
-            exit 1
+            echo "No checkbox checked."
+            echo "::set-output name=checkbox_checked::false"
           fi
+      
+      - name: Comment on Issue
+        if: steps.check_checkbox.outputs.checkbox_checked == 'true'
+        run: |
+          USERNAME="${{ github.event.issue.user.login }}"
+          COMMENT="Checkbox checked by @$USERNAME!"
 
-          # Add the appropriate label
           curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/labels \
-            -d "{\"labels\":[\"$LABEL\"]}"
-
-          # Fetch the current issue body
-          ISSUE_BODY=$(curl -s \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER)
-
-          # Extract the current body and append the checkbox
-          CURRENT_BODY=$(echo "$ISSUE_BODY" | jq -r '.body')
-          NEW_BODY="${CURRENT_BODY}\n- [x] ${CHECKBOX}"
-
-          echo $NEW_BODY
-
-          # Update the issue with the new body
-          curl -X PATCH \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER \
-            -d "{\"body\":\"${NEW_BODY}\"}"
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+            -d "{\"body\": \"$COMMENT\"}"
