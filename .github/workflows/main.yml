@@ -36,15 +36,13 @@ jobs:
               
               # Check if this item was previously unchecked
               if [[ "$item" =~ \[x\] ]] && ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
-                  NEW_CHECKED_ITEMS+="$item (Checked by: $USERNAME)\n"
                   # Update the original body to reflect the newly checked item
-                  UPDATED_BODY="${UPDATED_BODY//$item/- [x] $item_name ($USERNAME)}"
+                  UPDATED_BODY="${UPDATED_BODY//$item/- [x] $item_name (Checked by: $USERNAME)}"
               fi
           done <<< "$CURRENT_CHECKED"
 
-          # If there are new checked items, update the issue body
-          if [[ -n "$NEW_CHECKED_ITEMS" ]]; then
+          # If there are changes, update the issue body
+          if [[ "$UPDATED_BODY" != "${{ github.event.issue.body }}" ]]; then
               echo "Updating the issue body..."
-              echo "Body: $UPDATED_BODY"
-              echo "$UPDATED_BODY" | gh issue edit ${{ github.event.issue.number }} --body-file -
+              gh issue edit ${{ github.event.issue.number }} --body "$UPDATED_BODY"
           fi
