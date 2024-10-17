@@ -28,24 +28,31 @@ jobs:
           CURRENT_CHECKED=$(echo "${{ github.event.issue.body }}" | grep -E '\- \[x\]')
           
           USERNAME="${{ github.event.issue.user.login }}"
-          NEW_CHECKED_ITEMS=""
-          UPDATED_BODY="${{ github.event.issue.body }}"
-
-          # Loop through the current checked items
-          while IFS= read -r item; do
-            item_name="${item#- }"  # Remove the leading "- "
-
-            # Check if this item is newly checked
-            if [[ "$item" =~ \[x\] ]] && ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
-              echo "Debug: $item"
-              # Replace the item in UPDATED_BODY with the checked status and username
-              UPDATED_BODY="${UPDATED_BODY/\$item/- [x] $item_name (Checked by: $USERNAME)}"
-            fi
-          done <<< "$CURRENT_CHECKED"
+          NEW_BODY=""
+          
+          # Build the new body line by line
+          while IFS= read -r line; do
+              # Check if the line is a checkbox
+              if [[ "$line" =~ \[x\] ]]; then
+                  item_name="${line#- }"  # Remove the leading "- "
+                  
+                  # Check if this item was previously unchecked
+                  if ! grep -q "\- \[x\] $item_name" <<< "$PREVIOUS_BODY"; then
+                      # Item was newly checked
+                      NEW_BODY+="$line (Checked by: $USERNAME)\n"
+                  else
+                      # Item was already checked
+                      NEW_BODY+="$line\n"
+                  fi
+              else
+                  # Non-checkbox line, add as is
+                  NEW_BODY+="$line\n"
+              fi
+          done <<< "$(echo "${{ github.event.issue.body }}")"
 
           # If there are changes, update the issue body
-          if [[ "$UPDATED_BODY" != "${{ github.event.issue.body }}" ]]; then
-            echo "Updating the issue body..."
-            echo "Body: $UPDATED_BODY"
-            echo "$UPDATED_BODY" | gh issue edit ${{ github.event.issue.number }} --body -
+          if [[ "$NEW_BODY" != "${{ github.event.issue.body }}" ]]; then
+              echo "Updating the issue body..."
+              echo "Body: $NEW_BODY"
+              echo -e "$NEW_BODY" | gh issue edit ${{ github.event.issue.number }} --body -
           fi
